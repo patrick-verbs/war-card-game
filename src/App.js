@@ -1,5 +1,5 @@
 import './App.css';
-import WarGame from './WarGame.js';
+import WarGame from './WarGame';
 
 function App() {
   return (

@@ -21,7 +21,7 @@ class WarGame extends Component {
     };
     this.TableCanvas = React.createRef();
 
-    // binding for setting 'this'
+    // bindings for setting 'this'
     this.StartNewGame.bind(this);
     this.DoOneMove.bind(this);
     this.EndMove.bind(this);
@@ -32,8 +32,9 @@ class WarGame extends Component {
   }
 }
 
-// Get a card from the deck.
 GetOneCardFromDeck = () => {
+  // Get a card from the deck
+  // Set its value to '0' to 'remove' it from the deck
   let rnd = Math.round(Math.random() * 52);
   if (this.state.CardsDeck[rnd] != 0) {
     this.state.CardsDeck[rnd] = 0;
@@ -61,8 +62,8 @@ GetOneCardFromDeck = () => {
   return -1;
 }
 
-// Remove one card from the deck.
 MoveDeck = (deck) => {
+  // Remove one card from the deck
   for (let count = 0; count < 51; count++) {
     deck[count] = deck[count + 1];
   }
@@ -75,4 +76,95 @@ GetCardCount = (deck) => {
     if (deck[count] == null) { break };
   }
   return count == 52 ? 0 : count++;
+}
+
+StartNewGame = () => {
+  // Init new game
+  // Fill deck of cards and clear AI and player decks
+  for (let count = 0; count < 52; count++) {
+    this.state.CardsDeck[count] = 1;
+    this.state.PlayerDeck[count] = null;
+    this.state.AIDeck[count] = null;
+    this.state.PlayerBank[count] = null;
+    this.state.AIBank[count] = null;
+  }
+
+  // Now divvy up the deck to build the AI and player decks
+  for (let count = 0; count < 26; count++) {
+    this.state.PlayerDeck[count] = this.GetOneCardFromDeck();
+    this.state.AIDeck[count] = this.GetOneCardFromDeck();
+  }
+
+  this.setState({MoveState: 'NoState'});
+  this.setState({AppMode: 'Game'});
+}
+
+DoOneMove = () => {
+  // There are two options:
+  // 1) Bank is empty. Need to put 1 card in.
+  // 2) Bank is not empty. Need to put 3 cards + 1.
+  let PlayerCard = -1;
+  let AICard = -1;
+  let BankCardCount;
+  let PlayerCount = 0;
+  let AICardCount = 0;
+
+  switch (this.state.MoveState) {
+    case 'Equality':
+      // 2nd option
+      // Here we need to check if there are enough cards
+      PlayerCount = this.GetCardCount(this.state.PlayerDeck);
+      AICount = this.GetCardCount(this.state.AIDeck);
+
+      if (PlayerCount < 4) {
+        this.state({AppMode: 'AIWin'});
+      }
+      if (AICardCount < 4) {
+        this.state({AppMode: 'PlayerWin'});
+      }
+
+      // Put 3 cards + 1 into the bank
+      BankCardCount = this.GetCardCount(this.state.PlayerBank);
+      for (let count = 0; count < 4; count++) {
+        PlayerCard = this.state.PlayerDeck[0];
+        AICard = this.state.AIDeck[0];
+        this.MoveDeck(this.state.PlayerDeck);
+        this.MoveDeck(this.state.AIDeck);
+        this.state.PlayerBank[BankCardCount] = PlayerCard;
+        this.state.AIBank[BankCardCount] = AICard;
+
+        BankCardCount++;
+      }
+
+      if ((PlayerCard % 13) == (AICard % 13)) {
+        this.setState({MoveState: 'Equality'});
+      } else {
+        this.setState({MoveState: 'EndMove'});
+      }
+      break;
+
+    case 'EndMove':
+      this.EndMove();
+      this.setState({MoveState: 'NoState'});
+      break;
+    case 'NoState':
+    default:
+      // 1st option
+      PlayerCard = this.state.PlayerDeck[0];
+      AICard = this.state.AIDeck[0];
+      this.MoveDeck(this.state.PlayerDeck);
+      this.MoveDeck(this.state.AIDeck);
+
+      BankCardCount = this.GetCardCount(this.state.PlayerBank);
+      console.log(BankCardCount);
+      this.state.PlayerBank[BankCardCount] = PlayerCard;
+      this.state.AIBank[BankCardCount] = AICard;
+
+      if ((PlayerCard % 13) == (AICard % 13)) {
+        this.setState({MoveState: 'Equality'});
+      } else {
+        this.setState({MoveState: 'EndMove'});
+      }
+      break;
+  }
 }

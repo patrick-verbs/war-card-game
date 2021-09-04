@@ -168,3 +168,58 @@ DoOneMove = () => {
       break;
   }
 }
+
+EndMove = () => {
+  let BankCardCount = this.GetCardCount(this.state.PlayerBank);
+  let PlayerCard = this.state.PlayerBank[BankCardCount - 1] % 13;
+  let AICard = this.state.AIBank[BankCardCount - 1] % 13;
+  let count;
+  let PlayerCardCount;
+  let AICardCount;
+
+  if (PlayerCard == AICard) {
+    // Do nothing
+  } else {
+    if (PlayerCard > AICard) {
+      // Player wins
+      // Move both cards to the player's deck
+      console.log('Player wins!');
+      PlayerCardCount = this.GetCardCount(this.state.PlayerDeck);
+      for (count = 0; count < BankCardCount; count++) {
+        this.state.PlayerDeck[PlayerCardCount] = this.state.PlayerBank[count];
+        this.state.PlayerBank[count] = null;
+        PlayerCardCount++;
+      }
+      for (count = 0; count < BankCardCount; count++) {
+        this.state.PlayerDeck[PlayerCardCount] = this.state.AIBank[count];
+        this.state.AIBank[count] = null;
+        PlayerCardCount++;
+      }
+      // Check AI deck
+      AICardCount = this.GetCardCount(this.state.AIDeck);
+      if (AICardCount == 0) {
+        this.setState({AppMode: 'PlayerWin'});
+      }
+    } else {
+      // AI wins!
+      // Move both cards to the AI's deck
+      console.log('AI win!');
+      AICardCount = this.GetCardCount(this.state.AIDeck);
+      for (count = 0; count < BankCardCount; count++) {
+        this.state.AIDeck[AICardCount] = this.state.AIBank[count];
+        this.state.AIBank[count] = null;
+        AICardCount++;
+      }
+      for (count = 0; count < BankCardCount; count++) {
+        this.state.AIDeck[AICardCount] = this.state.PlayerBank[count];
+        this.state.PlayerBank[count] = null;
+        AICardCount++;
+      }
+      // Check player deck
+      AICardCount = this.GetCardCount(this.state.PlayerDeck);
+      if (AICardCount == 0) {
+        this.setState({AppMode: 'AIWin'});
+      }
+    }
+  }
+}
